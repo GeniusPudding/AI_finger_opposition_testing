@@ -1,0 +1,5 @@
+#abnormal, normal do not upload
+normal/*
+abnormal/*
+train_list.npy
+test_list.npy
