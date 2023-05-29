@@ -2,7 +2,7 @@
 DL/AI for finger opposition testing prediction, used to distinguish stroke patients from normal hand movements
 
 # Installation:
-pip install opencv-python
+pip install opencv-python  
 pip install mediapipe
 
 
