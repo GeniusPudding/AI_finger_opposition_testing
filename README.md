@@ -12,4 +12,5 @@ pip install mediapipe
 2. Put all finger opposition test videos into corresponding folders (.mp4 or .MOV)
 3. Run "python mediapiping.py" to generate training/testing data
 4. Run "python train_mediapipe.py" to train the DL model
+5. Run "python predict.py" to predict any finger opposition test video! (output Abnormal Score from 0 to 1)
 

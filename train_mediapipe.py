@@ -11,27 +11,20 @@ import pickle
 import os
 import torch.nn.functional as F
 from tqdm import tqdm
+
 if torch.cuda.is_available():
     device = torch.device('cuda')
-    print(f'有CUDA，使用{torch.cuda.get_device_name(0)}訓練')
+    print(f'有CUDA，使用{torch.cuda.get_device_name(0)}')
 else:
     device = torch.device('cpu')
     print('沒CUDA，使用CPU訓練')
-
-# 將模型部署到 CUDA 設備上
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
 # data_list = np.load('data_list.npy', allow_pickle=True)
 
 # # input(f'data_list: {data_list}')
 # # 分割數據為訓練集和測試集
 # train_list, test_list = train_test_split(data_list, test_size=0.2)
 
-train_list = np.load('train_list.npy', allow_pickle=True)
-test = [a['label'] for a in train_list]
-# input(f'train_list: {test}')
-test_list = np.load('test_list.npy', allow_pickle=True)
+
 
 # 定義 Dataset
 class VideoDataset(Dataset):
@@ -46,11 +39,6 @@ class VideoDataset(Dataset):
         label = torch.tensor(self.data_list[idx]['label'], dtype=torch.long)
         return data, label
     
-train_dataset = VideoDataset(train_list)
-test_dataset = VideoDataset(test_list)
-batch_size = 32
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
 # 定義模型
 # class VideoClassifier(nn.Module):
@@ -120,66 +108,83 @@ class VideoClassifier(nn.Module):
         out = self.fc(out[:, -1, :])
         return out
 
-
-model = VideoClassifier()
-# #load model, if model.pth exists
-if os.path.isfile('model.pth'):
-    model.load_state_dict(torch.load('model.pth'))
-    print('model.pth exists, load model')
-else:
-    print('model.pth not exists, train model')
+if __name__ == "__main__":
 
 
-model = model.to(device)
-# 定義損失函數和優化器
-num_params = sum(param.numel() for param in model.parameters())
-input(f'num_params: {num_params}')
+    # 將模型部署到 CUDA 設備上
 
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters())
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-# 設定訓練週期數 (epochs)
-num_epochs = 100
+    train_list = np.load('train_list.npy', allow_pickle=True)
+    test_list = np.load('test_list.npy', allow_pickle=True)
 
-# 訓練模型
-# for epoch in tqdm(range(num_epochs)):
-#     for data, labels in train_loader:
-#         optimizer.zero_grad()
-#         data = data.to(device)
-#         outputs = model(data)
-#         _, predicted = torch.max(outputs.data, 1)
-#         # input(f'outputs: {outputs}, labels: {labels}, predicted:{predicted}')
-#         labels = labels.to(device)
-#         loss = criterion(outputs, labels)
-#         loss.backward()
-#         optimizer.step()
-#     print('Epoch [{}/{}], Loss: {:.8f}'.format(epoch+1, num_epochs, loss.item()))
+    train_dataset = VideoDataset(train_list)
+    test_dataset = VideoDataset(test_list)
+    batch_size = 32
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
-# 將模型切換到評估模式
+    model = VideoClassifier()
+    # #load model, if model.pth exists
+    if os.path.isfile('model.pth'):
+        model.load_state_dict(torch.load('model.pth'))
+        print('model.pth exists, load model')
+    else:
+        print('model.pth not exists, train model')
 
-model.eval()
-total_samples = 0
-correct_samples = 0
-total_loss = 0
 
-# 在進行評估時，我們不需要更新模型的參數，因此不需要計算梯度
-print(f'len(test_list): {len(test_list)}')
-with torch.no_grad():
-    for data, labels in test_loader:
-        data = data.to(device)
-        outputs = model(data)
-        labels = labels.to(device)
-        loss = criterion(outputs, labels)
-        _, predicted = torch.max(outputs.data, 1)
-        print(f'predicted: {predicted}, labels: {labels}, outputs: {outputs}, data: {data}')
-        total_samples += labels.size(0)
-        correct_samples += (predicted == labels).sum().item()
-        total_loss += loss.item()
+    model = model.to(device)
+    # 定義損失函數和優化器
+    num_params = sum(param.numel() for param in model.parameters())
+    print(f'num_params: {num_params}')
 
-# 計算平均損失值和準確率
-avg_loss = total_loss / total_samples
-accuracy = 100 * correct_samples / total_samples
-print('Average Loss: {:.8f}, Accuracy: {:.3f}%'.format(avg_loss, accuracy))
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters())
 
-# 儲存模型權重
-torch.save(model.state_dict(), 'model.pth')
+    # 設定訓練週期數 (epochs)
+    num_epochs = 100
+
+    # 訓練模型
+    for epoch in tqdm(range(num_epochs)):
+        for data, labels in train_loader:
+            optimizer.zero_grad()
+            data = data.to(device)
+            outputs = model(data)
+            _, predicted = torch.max(outputs.data, 1)
+            # input(f'labels: {labels}\npredicted:{predicted}')
+            labels = labels.to(device)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+        print('Epoch [{}/{}], Loss: {:.8f}'.format(epoch+1, num_epochs, loss.item()))
+
+    # 將模型切換到評估模式
+
+    model.eval()
+    total_samples = 0
+    correct_samples = 0
+    total_loss = 0
+
+    # 在進行評估時，我們不需要更新模型的參數，因此不需要計算梯度
+    print(f'len(test_list): {len(test_list)}')
+    with torch.no_grad():
+        for data, labels in test_loader:
+            data = data.to(device)
+            outputs = model(data)
+            labels = labels.to(device)
+            loss = criterion(outputs, labels)
+            _, predicted = torch.max(outputs.data, 1)
+            print(f'predicted: {predicted}, labels: {labels}, outputs: {outputs}, data: {data}')
+            total_samples += labels.size(0)
+            correct_samples += (predicted == labels).sum().item()
+            total_loss += loss.item()
+
+    # 計算平均損失值和準確率
+    avg_loss = total_loss / total_samples
+    accuracy = 100 * correct_samples / total_samples
+    print('Average Loss: {:.8f}, Accuracy: {:.3f}%'.format(avg_loss, accuracy))
+
+    # 儲存模型權重
+    torch.save(model.state_dict(), 'model.pth')
+
+
