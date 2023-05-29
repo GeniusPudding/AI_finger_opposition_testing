@@ -52,6 +52,10 @@ if __name__ == "__main__":
     model_path = 'model.pth'
     video_path = sys.argv[1]
     predictor = VideoPredictor(model_path)
-    predictions = predictor.process_video(video_path)
+    try:
+        predictions = predictor.process_video(video_path)
+    except:
+        print(f'{video_path}無法處理，換一部試試')
+        exit(1)
     score  = sum(predictions) / len(predictions)
     print(f'Abnormal Score = {score}')
