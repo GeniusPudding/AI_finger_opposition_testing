@@ -1,2 +1,7 @@
-train_list.npy
-test_list.npy
+*.npy
+normal/
+abnormal/
+testing/
+normal/*
+abnormal/*
+testing/*
