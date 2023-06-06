@@ -11,6 +11,7 @@ from tqdm import tqdm
 from train_scoring import TransformerClassifier, GRUClassifier, ScorerDataset
 import xgboost as xgb
 from scipy import stats
+import os
 import matplotlib.pyplot as plt
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -113,18 +114,29 @@ class DiseasePredictor:
 if __name__ == "__main__":
     #Part 1 輸入影片路徑，輸出異常分數，判斷是否生病
     model_path = 'model.pth'
-    video_path = sys.argv[1]
     predictor = VideoPredictor(model_path)
+    video_path = sys.argv[1]
+    accu = 0
+    count = 0
+    # for d in os.listdir('abnormal'):
+    #     video_path = os.path.join('abnormal', d)
+    #     if not os.path.isfile(video_path):
+    #         continue
     try:
         predictions = predictor.predict_video(video_path)
+        score  = sum(predictions) / len(predictions)
+        print(f'Abnormal Score = {score}')
+        # print(f'Abnormal Score of {d} = {score}')
+        # accu += score
+        # count += 1
+
     except:
+        # continue
         print(f'{video_path}無法處理，換一部試試')
         exit(1)
-    score  = sum(predictions) / len(predictions)
-    print(f'Abnormal Score = {score}')
-    
+    # print(f'Average Abnormal Score = {accu / count}')
 
-    #Part 2 如果異常分數大於0.7，則視為異常，輸出生病警訊並需進一步判斷嚴重程度
+    # #Part 2 如果異常分數大於0.7，則視為異常，輸出生病警訊並需進一步判斷嚴重程度
     if score > 0.7:
         print('You are sick!')
         #引入"train_scoring.py"裡面訓練好的GRU、Transformer、xgboost三個模型，做集成預測然後輸出0到3分的分數，3為最嚴重
@@ -144,8 +156,11 @@ if __name__ == "__main__":
         
         # 根據disease_score_list的結果來給一個箱型圖 將其plot出來
         plt.boxplot(disease_score_list.cpu().numpy())
-        plt.xlabel("frame")  # 加入x軸的標籤
-        plt.ylabel("嚴重程度")  # 加入y軸的標籤
+        plt.xlabel("time frame")  # 加入x軸的標籤
+        plt.ylabel("severity")  # 加入y軸的標籤
+        #y軸的範圍是0到3 而且只會有整數
+        plt.yticks(np.arange(0, 4, 1))
+        plt.title("Disease Score")  # 加入圖表標題
         plt.savefig('disease_score_list.png')
         plt.show()  # show出來
         plt.close()  # 關閉figure

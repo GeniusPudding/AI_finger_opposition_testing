@@ -63,29 +63,29 @@ if __name__ == "__main__":
     test_list = np.load('test_list_scorer.npy', allow_pickle=True)
 
     # # Part 1 : 將資料轉換為 XGBoost 能使用的格式，並訓練模型
-    X_train = [item['data'].reshape(-1) for item in train_list]
-    y_train = [item['label'] for item in train_list]
+    # X_train = [item['data'].reshape(-1) for item in train_list]
+    # y_train = [item['label'] for item in train_list]
 
-    X_valid = [item['data'].reshape(-1) for item in valid_list]
-    y_valid = [item['label'] for item in valid_list]
+    # X_valid = [item['data'].reshape(-1) for item in valid_list]
+    # y_valid = [item['label'] for item in valid_list]
 
-    X_test = [item['data'].reshape(-1) for item in test_list]
-    y_test = [item['label'] for item in test_list]
+    # X_test = [item['data'].reshape(-1) for item in test_list]
+    # y_test = [item['label'] for item in test_list]
 
-    # 將 labels 編碼為 0 ~ (n_classes - 1)
-    le = LabelEncoder()
-    y_train = le.fit_transform(y_train)
-    y_valid = le.transform(y_valid)
-    y_test = le.transform(y_test)
+    # # 將 labels 編碼為 0 ~ (n_classes - 1)
+    # le = LabelEncoder()
+    # y_train = le.fit_transform(y_train)
+    # y_valid = le.transform(y_valid)
+    # y_test = le.transform(y_test)
 
-    # 轉換資料格式
-    dtrain = xgb.DMatrix(X_train, label=y_train)
-    dvalid = xgb.DMatrix(X_valid, label=y_valid)
-    dtest = xgb.DMatrix(X_test)
+    # # 轉換資料格式
+    # dtrain = xgb.DMatrix(X_train, label=y_train)
+    # dvalid = xgb.DMatrix(X_valid, label=y_valid)
+    # dtest = xgb.DMatrix(X_test)
 
-    # 設定參數
-    param = {'max_depth': 6, 'num_class': 4, 'objective': 'multi:softmax', 'nthread': 4, 'eval_metric': 'mlogloss'}
-    evallist = [(dvalid, 'eval'), (dtrain, 'train')]
+    # # 設定參數
+    # param = {'max_depth': 6, 'num_class': 4, 'objective': 'multi:softmax', 'nthread': 4, 'eval_metric': 'mlogloss'}
+    # evallist = [(dvalid, 'eval'), (dtrain, 'train')]
 
     # # 訓練模型
     # num_round = 50

@@ -94,45 +94,45 @@ if __name__ == "__main__":
     # 設定訓練週期數 (epochs)
     num_epochs = 100
 
-    for epoch in tqdm(range(num_epochs)):
-        model.train()
-        train_loss = 0.0
-        for data, labels in train_loader:
-            optimizer.zero_grad()
-            data = data.to(device)
-            outputs = model(data)
-            labels = labels.to(device)
-            _, predicted = torch.max(outputs.data, 1)
-            # input(f'predicted: {predicted}, labels: {labels},\ndiff: {predicted - labels}')
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-            train_loss += loss.item()
+    # for epoch in tqdm(range(num_epochs)):
+    #     model.train()
+    #     train_loss = 0.0
+    #     for data, labels in train_loader:
+    #         optimizer.zero_grad()
+    #         data = data.to(device)
+    #         outputs = model(data)
+    #         labels = labels.to(device)
+    #         _, predicted = torch.max(outputs.data, 1)
+    #         # input(f'predicted: {predicted}, labels: {labels},\ndiff: {predicted - labels}')
+    #         loss = criterion(outputs, labels)
+    #         loss.backward()
+    #         optimizer.step()
+    #         train_loss += loss.item()
 
-        # 在每個訓練週期後，使用驗證資料集來評估模型性能
-        valid_loss = 0.0
-        model.eval()  # 將模型切換到評估模式
-        with torch.no_grad():
-            for data, labels in valid_loader:
-                data = data.to(device)
-                outputs = model(data)
-                labels = labels.to(device)
-                loss = criterion(outputs, labels)
-                valid_loss += loss.item()
+    #     # 在每個訓練週期後，使用驗證資料集來評估模型性能
+    #     valid_loss = 0.0
+    #     model.eval()  # 將模型切換到評估模式
+    #     with torch.no_grad():
+    #         for data, labels in valid_loader:
+    #             data = data.to(device)
+    #             outputs = model(data)
+    #             labels = labels.to(device)
+    #             loss = criterion(outputs, labels)
+    #             valid_loss += loss.item()
 
-        model.train()  # 將模型切換回訓練模式
+    #     model.train()  # 將模型切換回訓練模式
 
-        avg_train_loss = train_loss / len(train_loader)
-        avg_valid_loss = valid_loss / len(valid_loader)
+    #     avg_train_loss = train_loss / len(train_loader)
+    #     avg_valid_loss = valid_loss / len(valid_loader)
 
-        # 如果驗證損失是迄今為止最低的，則儲存模型的權重
-        if avg_valid_loss < best_valid_loss:
-            best_valid_loss = avg_valid_loss
-            torch.save(model.state_dict(), 'model.pth')
-            print(f'\nModel saved! , avg_valid_loss: {avg_valid_loss}')
+    #     # 如果驗證損失是迄今為止最低的，則儲存模型的權重
+    #     if avg_valid_loss < best_valid_loss:
+    #         best_valid_loss = avg_valid_loss
+    #         torch.save(model.state_dict(), 'model.pth')
+    #         print(f'\nModel saved! , avg_valid_loss: {avg_valid_loss}')
 
-        print('Epoch [{}/{}], Train Loss: {:.8f}, Valid Loss: {:.8f}'
-            .format(epoch+1, num_epochs, avg_train_loss, avg_valid_loss))
+    #     print('Epoch [{}/{}], Train Loss: {:.8f}, Valid Loss: {:.8f}'
+    #         .format(epoch+1, num_epochs, avg_train_loss, avg_valid_loss))
 
     # 將模型切換到評估模式
     model.load_state_dict(torch.load('model.pth'))
